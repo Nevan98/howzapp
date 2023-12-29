@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HowzApp - Simple Chat App</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #login-screen, #home-screen, #chat-container {
+            display: none;
+        }
+
+        #login-screen, #home-screen {
+            padding: 20px;
+            text-align: center;
+        }
+
+        #navbar {
+            background-color: #4caf50;
+            overflow: hidden;
+        }
+
+        #navbar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        #navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        #chat-container {
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-container {
+            margin-bottom: 10px;
+        }
+
+        .message {
+            padding: 8px;
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+
+        .sender-message {
+            background-color: #4caf50;
+            color: #ffffff;
+            align-self: flex-end;
+        }
+
+        .receiver-message {
+            background-color: #e0e0e0;
+        }
+
+        .quoted-message {
+            background-color: #ffeb3b;
+            border: 1px solid #fbc02d;
+            padding: 5px;
+        }
+
+        #message-input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            box-sizing: border-box;
+            margin-top: 10px;
+        }
+
+        #send-button {
+            background-color: #4caf50;
+            color: #ffffff;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="navbar">
+    <a href="javascript:void(0);" onclick="showHomeScreen()">Home</a>
+    <a href="javascript:void(0);" onclick="showLoginScreen()">Login</a>
+</div>
+
+<div id="login-screen">
+    <h2>Welcome to HowzApp</h2>
+    <input type="text" id="user-name-input" placeholder="Your Name">
+    <button onclick="login()">Start Chatting</button>
+</div>
+
+<div id="home-screen">
+    <h2>Welcome to HowzApp, <span id="user-greeting"></span>!</h2>
+    <button onclick="loadChat(1)">Load Chat with User 1</button>
+    <button onclick="loadChat(2)">Load Chat with User 2</button>
+</div>
+
+<div id="chat-container">
+    <div id="chat-header">
+        <img id="chat-profile-image" src="" alt="Profile Image" style="width: 50px; height: 50px; border-radius: 50%;">
+        <h3 id="chat-user-name"></h3>
+    </div>
+    
+    <div id="chat-messages"></div>
+
+    <input type="text" id="message-input" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+    <button id="send-button" onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+    var users = [
+        { userId: 1, displayName: "User 1", profileImage: "default-profile.png" },
+        { userId: 2, displayName: "User 2", profileImage: "default-profile.png" }
+    ];
+
+    var currentUser;
+    var chatUser = {}; // Represents the user with whom the current chat is happening
+
+    function showLoginScreen() {
+        document.getElementById("navbar").style.display = "none";
+        document.getElementById("login-screen").style.display = "block";
+        document.getElementById("home-screen").style.display = "none";
+        document.getElementById("chat-container").style.display = "none";
+    }
+
+    function login() {
+        var userNameInput = document.getElementById("user-name-input");
+        var userName = userNameInput.value.trim();
+
+        if (userName !== "") {
+            currentUser = { userId: 0, displayName: userName, profileImage: "default-profile.png" };
+
+            document.getElementById("user-greeting").textContent = userName;
+            document.getElementById("navbar").style.display = "block";
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("home-screen").style.display = "block";
+            document.getElementById("chat-container").style.display = "none";
+        }
+    }
+
+    function showHomeScreen() {
+        document.getElementById("home-screen").style.display = "block";
+        document.getElementById("chat-container").style.display = "none";
+    }
+
+    function loadChat(userId) {
+        chatUser = users.find(user => user.userId === userId);
+
+        // Update chat header with the selected user's information
+        document.getElementById("chat-profile-image").src = chatUser.profileImage;
+        document.getElementById("chat-user-name").textContent = chatUser.displayName;
+
+        document.getElementById("home-screen").style.display = "none";
+        document.getElementById("chat-container").style.display = "block";
+
+        // Clear existing messages when loading a new chat
+        document.getElementById("chat-messages").innerHTML = "";
+    }
+
+    function sendMessage() {
+        var messageInput = document.getElementById("message-input");
+        var message = messageInput.value.trim();
+
+        if (message !== "") {
+            var chatMessages = document.getElementById("chat-messages");
+            var newMessageContainer = document.createElement("div");
+            var newMessage = document.createElement("div");
+
+            newMessageContainer.className = "message-container";
+            newMessage.className = currentUser.userId === chatUser.userId ? "message sender-message" : "message receiver-message";
+
+            // Add emoji support (you can add more emojis as needed)
+            message = message.replace(":)", "😊").replace(":(", "😢");
+
+            newMessage.innerHTML = `<strong>${currentUser.displayName}:</strong> ${message}`;
+            newMessageContainer.appendChild(newMessage);
+            chatMessages.appendChild(newMessageContainer);
+
+            // Clear the input field
+            messageInput.value = "";
+
+            // Scroll to the bottom to show the latest message
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+
+    // Enable "Enter" key to send messages
+    function handleKeyPress(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    }
+
+    // Quote a message on click
+    document.getElementById("chat-messages").addEventListener("click", function (event) {
+        var clickedMessage = event.target.closest(".message");
+        if (clickedMessage) {
+            var quotedMessage = clickedMessage.cloneNode(true);
+            quotedMessage.classList.add("quoted-message");
+            document.getElementById("message-input").value = quotedMessage.textContent;
+        }
+    });
+
+    // Initial setup
+    showLoginScreen();
+</script>
+
+</body>
+</html>
